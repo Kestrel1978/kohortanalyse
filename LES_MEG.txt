@@ -1,0 +1,19 @@
+KOHORTANALYSE – LÆRINGSSPILL
+
+Åpne:
+  kohortanalyse_laeringsspill.html
+
+Mappestruktur:
+  kohortanalyse_laeringsspill.html
+  Kilde/
+    Oppsummeringsrapport1991-2011_final_secured.pdf
+    kjeveillustrasjon_elg_kalv.webp
+
+Ekstern lenke brukt i HTML:
+  https://hjortevilt.no/jakt/aldersbestemme-felt-elg-og-hjort
+
+Viktig:
+Behold mappen Kilde på samme nivå som HTML-filen. Da fungerer bilde- og PDF-lenkene lokalt.
+
+Bunntekst i læringsspillet:
+  Laget av Ronny Steen · Hovedkilde: Solberg mfl. (2012), Hjortevilt 1991–2011, NINA Rapport 885. · Skyggekoding: ChatGPT

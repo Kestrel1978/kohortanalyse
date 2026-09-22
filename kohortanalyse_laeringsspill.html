@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kohortanalyse – læringsspill</title>
+<style>
+:root{
+  --bg:#f3f6f3;--card:#fff;--ink:#202a25;--muted:#647168;--accent:#315f47;
+  --accent2:#789985;--blue:#315f83;--line:#d8e2da;--soft:#eaf2ec;
+  --warn:#9b651c;--bad:#9c3434;--good:#25603a
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(#edf3ee,#f8faf8);color:var(--ink)}
+.wrap{max-width:1240px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{margin:0;font-size:clamp(1.65rem,3vw,2.45rem)}
+.subtitle{color:var(--muted);margin:.35rem 0 0}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.nav button{padding:8px 12px}
+.scorebox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;min-width:240px;box-shadow:0 7px 22px rgba(0,0,0,.05)}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.logo-badge{
+  background:#3b4b43;
+  border-radius:14px;
+  padding:12px 16px;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
+}
+.logo-badge img{
+  display:block;
+  max-width:240px;
+  width:100%;
+  height:auto
+}
+
+.progress{height:9px;background:#e5ebe6;border-radius:99px;overflow:hidden;margin-top:8px}.progress div{height:100%;background:var(--accent);width:0;transition:.3s}
+main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 28px rgba(0,0,0,.055)}
+.lesson{padding:24px;min-height:700px}.calc{padding:18px;height:max-content;position:sticky;top:16px}
+h2{font-size:1.65rem;margin:.6rem 0 .4rem}h3{margin:1.1rem 0 .5rem}
+.lead{font-size:1.04rem;color:#425047;line-height:1.58;max-width:900px}
+.leveltag,.sourcechip,.pill{display:inline-block;border-radius:999px;font-weight:700}
+.leveltag{background:var(--soft);color:var(--accent);padding:7px 12px;font-size:.9rem}
+.sourcechip{background:#eef4fa;color:var(--blue);padding:5px 9px;font-size:.8rem;margin:2px}
+.pill{background:#f0f4f1;padding:4px 8px;font-size:.84rem;margin:2px}
+.note,.method,.warning,.quote{padding:12px 14px;border-radius:11px;margin:14px 0;line-height:1.5}
+.note{background:#f7faf7;border-left:4px solid var(--accent2)}
+.method{background:#f3f7fb;border-left:4px solid var(--blue)}
+.warning{background:#fff9ed;border-left:4px solid #d4a04d}
+.quote{background:#fbfbf8;border-left:4px solid #8f978d;font-family:Georgia,serif}
+.formula{font-family:Georgia,serif;font-size:1.08rem;background:#fafcfa;border:1px solid var(--line);padding:12px 14px;border-radius:12px;margin:12px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{border:1px solid var(--line);background:#fbfdfb;border-radius:14px;padding:14px}
+.card h3{margin-top:0}
+.question{font-weight:780;font-size:1.08rem;margin:19px 0 10px}
+.choices{display:grid;gap:9px}.choice{text-align:left;background:#f7faf7;border:1px solid var(--line);color:var(--ink);line-height:1.4}
+button{border:0;border-radius:11px;padding:10px 13px;font:inherit;font-weight:700;cursor:pointer;transition:.13s}
+button:hover{transform:translateY(-1px)}
+.primary{background:var(--accent);color:#fff}.secondary{background:#e9efea;color:#294536}.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}.danger{background:#fff0f0;color:#8d2d2d;border:1px solid #efc1c1}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+.feedback{display:none;margin-top:14px;padding:13px 15px;border-radius:12px;line-height:1.5}.feedback.good{display:block;background:#e8f5ea;color:var(--good)}.feedback.bad{display:block;background:#fff0f0;color:#842f2f}.feedback.info{display:block;background:#eef4fb;color:#27507b}
+table{width:100%;border-collapse:collapse;margin:14px 0}th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:right}th:first-child,td:first-child{text-align:left}th{background:#f7faf7}
+.matrix td,.matrix th{text-align:center}.diag{background:#e6f0e9;font-weight:800}.yearcol{background:#eef4fa}
+.sliderrow{display:grid;grid-template-columns:180px 1fr 72px;gap:10px;align-items:center;margin:11px 0}
+input[type=range]{width:100%}
+.simgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:13px}
+canvas{width:100%;height:250px;border:1px solid var(--line);border-radius:13px;background:#fbfdfb}
+.small{font-size:.89rem;color:var(--muted)}.tiny{font-size:.8rem;color:var(--muted)}
+.footerhint{margin-top:20px;border-top:1px solid var(--line);padding-top:11px;color:var(--muted);font-size:.9rem}
+#calcDisplay{width:100%;font-size:1.45rem;padding:12px;border:1px solid var(--line);border-radius:12px;text-align:right;background:#f8faf8;margin:8px 0 10px}
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.key{background:#f1f4f1}.key.op{background:#e2ece4;color:#214b34}.key.eq{background:var(--accent);color:#fff}
+.taskbox{background:#fffdf5;border:1px solid #ead9a6;border-radius:12px;padding:12px;margin-top:14px}
+.hidden{display:none!important}.stars{font-size:1.25rem;letter-spacing:2px}
+.ref{padding-left:1.2rem}.ref li{margin:.45rem 0;line-height:1.45}
+
+.figurebox{margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fbfdfb}
+.figurebox img{display:block;width:100%;max-width:860px;height:auto;margin:0 auto;border-radius:10px}
+.figcap{font-size:.86rem;color:var(--muted);line-height:1.45;margin-top:8px}
+.resource-links{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
+.resource-links a{display:inline-block;text-decoration:none;border-radius:11px;padding:10px 13px;font-weight:700}
+.resource-local{background:#e9efea;color:#294536;border:1px solid var(--line)}
+.resource-web{background:#eef4fa;color:#315f83;border:1px solid #cfdae6}
+
+
+.sitefooter{
+  margin-top:18px;
+  padding:14px 18px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#f8faf8;
+  color:var(--muted);
+  font-size:.88rem;
+  line-height:1.5;
+  text-align:center;
+}
+
+@media(max-width:920px){main{grid-template-columns:1fr}.calc{position:static}.grid2,.grid3,.simgrid{grid-template-columns:1fr}.header-right{width:100%;align-items:stretch}.logo-badge img{max-width:220px;margin-left:auto}.scorebox{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Kohortanalyse – læringsspill</h1>
+    <p class="subtitle">Årsklasser, bestandsrekonstruksjon, usikkerhet og bruk i viltforvaltning</p>
+    <div class="nav">
+      <button class="secondary" onclick="showTheory()">Teorigrunnlag</button>
+      <button class="secondary" onclick="showGame()">Oppgaver</button>
+      <button class="ghost" onclick="showSources()">Kilder</button>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="logo-badge">
+      <img src="Kilde/logo_hvit.png" alt="Logo">
+    </div>
+    <div class="scorebox">
+      <div><strong id="levelText">Teorigrunnlag</strong></div>
+      <div>Poeng: <strong id="score">0</strong> · <span class="stars" id="stars">☆☆☆</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="panel lesson"><div id="content"></div></section>
+<aside class="panel calc">
+  <h3>Digital kalkulator</h3>
+  <div class="small">Bruk kalkulatoren til mellomregning. Prosentoppgaver besvares som prosenttall, f.eks. <strong>38,2</strong>.</div>
+  <input id="calcDisplay" value="" aria-label="Kalkulator">
+  <div class="keypad">
+    <button class="key" onclick="press('7')">7</button><button class="key" onclick="press('8')">8</button><button class="key" onclick="press('9')">9</button><button class="key op" onclick="press('/')">÷</button>
+    <button class="key" onclick="press('4')">4</button><button class="key" onclick="press('5')">5</button><button class="key" onclick="press('6')">6</button><button class="key op" onclick="press('*')">×</button>
+    <button class="key" onclick="press('1')">1</button><button class="key" onclick="press('2')">2</button><button class="key" onclick="press('3')">3</button><button class="key op" onclick="press('-')">−</button>
+    <button class="key" onclick="press('0')">0</button><button class="key" onclick="press('.')">.</button><button class="key op" onclick="press('+')">+</button><button class="key eq" onclick="calcEquals()">=</button>
+    <button class="danger" onclick="clearCalc()" style="grid-column:span 2">C</button><button class="ghost" onclick="backspace()" style="grid-column:span 2">⌫</button>
+  </div>
+  <div class="taskbox"><strong>Faglig hint</strong><div id="calcTip" class="small">Les teorigrunnlaget før du starter oppgavene.</div></div>
+</aside>
+</main>
+</div>
+
+<footer class="sitefooter">
+  Laget av Ronny Steen · Hovedkilde: Solberg mfl. (2012), <em>Hjortevilt 1991–2011</em>, NINA Rapport 885. · Skyggekoding: ChatGPT
+</footer>
+
+<script>
+let mode='theory', level=0, score=0;
+let attempts=[0,0,0,0,0,0,0];
+let levelDone=[false,false,false,false,false,false,false];
+
+const theoryHTML=`
+<span class="leveltag">Teorigrunnlag</span>
+<h2>Hva er kohortanalyse?</h2>
+<p class="lead">I NINA-rapporten brukes begrepene <strong>årsklasseanalyse (kohortanalyse)</strong> om en retrospektiv metode der alder ved død og året dyret ble felt brukes til å rekonstruere hvor mange dyr som må ha vært til stede i tidligere år. Rapporten anvender metoden på elg i overvåkingsområdene.</p>
+<div class="quote">«… beregne hvor mange elg som må ha vært til stede i bestanden i de foregående åra.»<br><span class="small">Solberg mfl. (2012), s. 26</span></div>
+
+<div class="grid2">
+  <div class="card">
+    <h3>1. Datagrunnlaget</h3>
+    <p>Aldersbestemmelse er avgjørende. I elgovervåkingen ble underkjever samlet inn fra skutte dyr, tenner ble trukket, snittet og avlest for alder. I tillegg ble blant annet kjønn, alderskategori, fellingsdato og slaktevekt registrert.</p>
+    <span class="sourcechip">Solberg mfl. 2012, s. 16</span>
+  </div>
+  <div class="card">
+    <h3>2. Kohorten følges diagonalt</h3>
+    <p>I en tabell med <strong>fellingsår</strong> på x-aksen og <strong>alder</strong> på y-aksen vil samme fødselskohort ligge langs en diagonal: dyr født samme år blir ett år eldre for hvert kalenderår.</p>
+  </div>
+  <div class="card">
+    <h3>3. Rekonstruksjon bakover</h3>
+    <p>Når vi kjenner når dyrene ble felt og hvor gamle de var, kan vi koble døde individer tilbake til tidligere år da de fortsatt var i live. Summen av framtidige observerte skjebner gir informasjon om tidligere bestandsstørrelse.</p>
+  </div>
+  <div class="card">
+    <h3>4. Plussgruppe</h3>
+    <p>Elg kan leve i mer enn 20 år. Rapporten beskriver derfor <strong>kohortanalyse med plussgruppe</strong>, som reduserer kravet om at hele livsløpet til en kohort må være observert. Terminale aldersklasser og gjenlevende individer må likevel estimeres.</p>
+    <span class="sourcechip">Solberg mfl. 2012, s. 26</span>
+  </div>
+</div>
+
+
+<h3>Aldersbestemmelse – fra kjeve til kohort</h3>
+<p class="lead">Kohortanalysen er avhengig av at dyrene plasseres i riktig aldersklasse. For unge elg kan tannframbrudd og tannskifte brukes som støtte ved aldersbestemmelsen. For eldre dyr brukes mer detaljerte metoder, blant annet tannsnitt.</p>
+
+<div class="figurebox">
+  <img src="Kilde/kjeveillustrasjon_elg_kalv.webp" alt="Illustrasjon av underkjeve hos elgkalv med nummererte kinntenner og detaljer ved jekslene">
+  <div class="figcap">Kjeveillustrasjon til bruk i læringsstien. Filen ligger lokalt i <strong>Kilde/kjeveillustrasjon_elg_kalv.webp</strong>.</div>
+</div>
+
+<div class="resource-links">
+  <a class="resource-local" href="Kilde/Oppsummeringsrapport1991-2011_final_secured.pdf" target="_blank" rel="noopener">Åpne NINA-rapporten (PDF)</a>
+  <a class="resource-web" href="https://hjortevilt.no/jakt/aldersbestemme-felt-elg-og-hjort" target="_blank" rel="noopener">Mer om aldersbestemmelse på Hjortevilt.no</a>
+</div>
+
+<div class="method">
+<strong>Koblingen til kohortanalyse:</strong> Når et felt dyr er aldersbestemt, kan fødselsåret beregnes fra fellingsår og alder. Dyret kan dermed plasseres i riktig fødselskohort, og inngå i år × alder-matrisen som brukes i rekonstruksjonen.
+</div>
+
+<h3>Slik leses år × alder-matrisen</h3>
+<table class="matrix">
+<thead><tr><th>Alder</th><th>1974</th><th>1975</th><th>1976</th><th>1977</th></tr></thead>
+<tbody>
+<tr><td>K0</td><td class="diag">●</td><td></td><td></td><td></td></tr>
+<tr><td>K1</td><td class="yearcol"></td><td class="diag">●</td><td></td><td></td></tr>
+<tr><td>K2</td><td class="yearcol"></td><td></td><td class="diag">●</td><td></td></tr>
+<tr><td>K3</td><td class="yearcol"></td><td></td><td></td><td class="diag">●</td></tr>
+</tbody>
+</table>
+<p class="small"><strong>Diagonal:</strong> samme fødselskohort. <strong>Kolonne:</strong> aldersfordelingen i ett kalenderår. Figuren er pedagogisk forenklet.</p>
+
+<div class="method">
+<strong>Eksempel fra rapporten:</strong> I tabell 3.4.1, basert på okser i overvåkingsområdet i Nordland, ble <strong>340 individer</strong> rekonstruert som levende rett før jakta i 1974. Diagonalen for årsklassen født i 1974 omfattet <strong>130 individer</strong>. Tabellen illustrerer hvordan framtidige aldersbestemte fellinger kan brukes til å rekonstruere tidligere bestand.
+</div>
+
+<h3>Viktige antakelser og begrensninger</h3>
+<div class="grid3">
+  <div class="card"><strong>Alder og kjønn</strong><p class="small">Rapporten understreker behovet for presise alder- og kjønnsdata fra de fleste skutte dyr.</p></div>
+  <div class="card"><strong>Naturlig dødelighet</strong><p class="small">I modellberegningene ble det antatt en naturlig dødelighetsrate på <strong>5 %</strong>, omtrent gjennomsnittet for norske elgbestander.</p></div>
+  <div class="card"><strong>Ikke en direkte telling</strong><p class="small">Forskjeller i naturlig dødelighet mellom områder og år kan gi avvik mellom rekonstruert og faktisk tetthet.</p></div>
+</div>
+
+<div class="quote">«Metoden er derfor bedre egnet til å avdekke den relative variasjonen … over tid enn det faktiske antallet … et gitt år.»<br><span class="small">Solberg mfl. (2012), s. 26</span></div>
+
+<div class="note"><strong>Hvorfor er dette nyttig?</strong> Rapporten fant at rekonstruert bestandsutvikling samsvarte godt med utviklingen i <em>sett elg per jegerdagsverk</em> og jaktuttaket. Slike sammenligninger er viktige fordi en modellbasert rekonstruksjon bør vurderes opp mot andre, uavhengige indikatorer.</div>
+
+<div class="actions"><button class="primary" onclick="showGame()">Start læringsstien →</button></div>
+<div class="footerhint">Hovedkilde: Solberg mfl. (2012), <em>Hjortevilt 1991–2011</em>, NINA Rapport 885.</div>
+`;
+
+const sourceHTML=`
+<span class="leveltag">Kilder</span>
+<h2>Kildegrunnlag i læringsspillet</h2>
+<p class="lead">Teori og rapporteksempler er hentet fra den vedlagte oppsummeringsrapporten fra Overvåkingsprogrammet for hjortevilt.</p>
+<ul class="ref">
+<li>Solberg, E. J., Strand, O., Veiberg, V., Andersen, R., Heim, M., Rolandsen, C. M., Langvatn, R., Holmstrøm, F., Solem, M. I., Eriksen, R., Astrup, R., & Ueno, M. (2012). <em>Hjortevilt 1991–2011 – Oppsummeringsrapport fra Overvåkingsprogrammet for hjortevilt</em>. NINA Rapport 885.</li>
+</ul>
+<div class="note"><strong>Sider brukt særlig aktivt:</strong> s. 13–16 for overvåkingsformål og datainnsamling, og s. 25–26 for årsklasseanalyse, plussgruppe, 5 % antatt naturlig dødelighet og eksempelet fra Nordland.</div>
+
+<div class="resource-links">
+  <a class="resource-local" href="Kilde/Oppsummeringsrapport1991-2011_final_secured.pdf" target="_blank" rel="noopener">Åpne vedlagt rapport</a>
+  <a class="resource-web" href="https://hjortevilt.no/jakt/aldersbestemme-felt-elg-og-hjort" target="_blank" rel="noopener">Hjortevilt.no: aldersbestemme felt elg og hjort</a>
+</div>
+<div class="figurebox">
+  <img src="Kilde/kjeveillustrasjon_elg_kalv.webp" alt="Kjeveillustrasjon av elgkalv">
+  <div class="figcap">Illustrasjon brukt i teoridelen: <strong>Kilde/kjeveillustrasjon_elg_kalv.webp</strong>.</div>
+</div>
+
+<div class="actions"><button class="primary" onclick="showTheory()">Til teorigrunnlaget</button><button class="secondary" onclick="showGame()">Til oppgavene</button></div>
+`;
+
+const levels=[
+()=>`
+<span class="leveltag">Nivå 1 · Les en kohortmatrise</span>
+<h2>Hva følger diagonalen?</h2>
+<p class="lead">I rapportens tabell 3.4.1 er fellingsår organisert mot alder. En diagonal gjennom tabellen representerer dyr som er født samme år, men som felles ved ulik alder.</p>
+<div class="question">Hva representerer en slik diagonal?</div>
+<div class="choices">
+<button class="choice" onclick="mc(0,'A')">A · Alle dyr som ble felt i samme kalenderår</button>
+<button class="choice" onclick="mc(0,'B')">B · Alle dyr som tilhører samme fødselskohort</button>
+<button class="choice" onclick="mc(0,'C')">C · Alle dyr med samme alder, uavhengig av fødselsår</button>
+<button class="choice" onclick="mc(0,'D')">D · Bare dyr som overlevde hele overvåkingsperioden</button>
+</div><div id="fb" class="feedback"></div>
+<div class="footerhint">Koblingen mellom kalenderår og alder er grunnlaget for å rekonstruere en årsklasse bakover i tid.</div>
+`,
+()=>`
+<span class="leveltag">Nivå 2 · Rapporteksempel</span>
+<h2>Nordland-eksempelet fra 1974</h2>
+<p class="lead">Rapporten oppgir at <strong>340 okser</strong> var rekonstruert som levende rett før jakta i 1974, mens <strong>130 individer</strong> tilhørte årsklassen født i 1974.</p>
+<div class="question">Hvor stor andel utgjør 1974-kohorten av de 340 rekonstruerte individene? Oppgi prosent med én desimal.</div>
+<div class="actions">
+  <button class="ghost" id="formulaHintBtn" onclick="toggleFormulaHint()">Vis regnehjelp</button>
+  <button class="primary" onclick="checkL2()">Kontroller</button>
+</div>
+<div id="formulaHint" class="formula hidden"><strong>Regnehjelp:</strong> andel (%) = del / helhet × 100. Finn selv hvilke av tallene 130 og 340 som er del og helhet.</div>
+<div id="fb" class="feedback"></div>
+<div class="footerhint">Tallene 340 og 130 er hentet fra beskrivelsen av tabell 3.4.1 i Solberg mfl. (2012, s. 26).</div>
+`,
+()=>`
+<span class="leveltag">Nivå 3 · Naturlig dødelighet</span>
+<h2>Hva betyr antakelsen om 5 %?</h2>
+<p class="lead">I rapportens rekonstruksjoner ble det antatt en naturlig dødelighetsrate på <strong>5 %</strong>. Tenk deg en forenklet situasjon der 200 dyr er i live etter jakt, og vi lar 5 % naturlig dødelighet virke fram til neste år.</p>
+<div class="question">Hvor mange forventes å være i live etter denne naturlige dødeligheten?</div>
+<div class="actions"><button class="primary" onclick="checkL3()">Kontroller</button></div>
+<div id="fb" class="feedback"></div>
+<div class="footerhint">Dette er en pedagogisk beregning som bruker rapportens 5 %-antakelse, ikke et konkret årstall fra rapportens datasett.</div>
+`,
+()=>`
+<span class="leveltag">Nivå 4 · Simulering</span>
+<h2>Utforsk sensitiviteten</h2>
+<p class="lead">Startbestanden settes til <strong>340 dyr</strong>, samme størrelsesorden som 1974-eksempelet i rapporten. Selve ratene under er hypotetiske. Endre jaktmortalitet og naturlig mortalitet og se hvor raskt kohorten reduseres.</p>
+<div class="sliderrow"><label>Jaktmortalitet H</label><input id="hunt" type="range" min="0" max="45" value="20" oninput="labels()"><strong id="huntV">20 %</strong></div>
+<div class="sliderrow"><label>Naturlig mortalitet M</label><input id="nat" type="range" min="0" max="20" value="5" oninput="labels()"><strong id="natV">5 %</strong></div>
+<div class="actions"><button class="primary" onclick="simulate()">Kjør 5 år</button><button class="secondary" onclick="preset(20,10)">M = 10 %</button><button class="ghost" onclick="preset(20,5)">Tilbake til 5 %</button></div>
+<div class="simgrid"><canvas id="chart" width="600" height="300"></canvas><div id="simTable"></div></div>
+<div class="question">Hvorfor kan endring i antatt naturlig mortalitet påvirke rekonstruksjonen?</div>
+<div class="choices">
+<button class="choice" onclick="mc(3,'A')">A · Fordi modellen må fordele forsvunne dyr mellom jakt, annen dødelighet og gjenlevende</button>
+<button class="choice" onclick="mc(3,'B')">B · Fordi naturlig mortalitet endrer alderen dyret hadde da det ble felt</button>
+<button class="choice" onclick="mc(3,'C')">C · Den påvirker ikke rekonstruksjonen når jaktuttaket er kjent</button>
+</div><div id="fb" class="feedback"></div>
+<div class="footerhint">Rapporten påpeker at variasjon i naturlig dødelighet mellom områder og år kan gi avvik fra faktisk tetthet.</div>
+`,
+()=>`
+<span class="leveltag">Nivå 5 · Forenklet rekonstruksjon</span>
+<h2>Regn bakover fra observerte skjebner</h2>
+<p class="lead">Dette er et didaktisk eksempel. I en kohort er 40 dyr senere registrert felt som 1-åringer, 28 som 2-åringer, 17 som 3-åringer, og 10 er igjen i terminalgruppen. Vi antar i denne oppgaven at alle andre dødsfall allerede er innarbeidet i tallene.</p>
+<table><thead><tr><th>Skjebne</th><th>Antall</th></tr></thead><tbody><tr><td>Felt som 1-åring</td><td>40</td></tr><tr><td>Felt som 2-åring</td><td>28</td></tr><tr><td>Felt som 3-åring</td><td>17</td></tr><tr><td>Terminalt gjenlevende</td><td>10</td></tr></tbody></table>
+<div class="question">Hvor mange dyr må minst ha inngått i denne forenklede kohorten ved start?</div>
+<div class="actions"><button class="primary" onclick="checkL5()">Kontroller</button></div>
+<div id="fb" class="feedback"></div>
+<div class="footerhint">Poenget er regnskapslogikken: observerte framtidige skjebner peker tilbake på individer som må ha vært til stede tidligere.</div>
+`,
+()=>`
+<span class="leveltag">Nivå 6 · Plussgruppe og terminalusikkerhet</span>
+<h2>Hvorfor trengs en plussgruppe?</h2>
+<p class="lead">Elg kan leve i mer enn 20 år. Dersom vi måtte vente til absolutt alle individer i en kohort var døde og aldersbestemt, ville det ta svært lang tid før nyere kohorter kunne analyseres.</p>
+<div class="question">Hva er den viktigste funksjonen til en plussgruppe i denne sammenhengen?</div>
+<div class="choices">
+<button class="choice" onclick="mc(5,'A')">A · Den samler de eldste/terminale aldersklassene slik at gjenlevende individer kan håndteres i modellen</button>
+<button class="choice" onclick="mc(5,'B')">B · Den gjør aldersbestemmelse av skutte dyr unødvendig</button>
+<button class="choice" onclick="mc(5,'C')">C · Den antar at alle dyr eldre enn en viss alder er døde</button>
+<button class="choice" onclick="mc(5,'D')">D · Den korrigerer automatisk for all inn- og utvandring</button>
+</div><div id="fb" class="feedback"></div>
+<div class="footerhint">Rapporten beskriver «kohortanalyse med plussgruppe» som en måte å redusere kravet om komplette livsløpsdata.</div>
+`,
+()=>`
+<span class="leveltag">Nivå 7 · Fra modell til forvaltning</span>
+<h2>Hvordan bør resultatet tolkes?</h2>
+<p class="lead">Rapporten fant at rekonstruert bestandsutvikling samsvarte godt med både antall elg sett per jegerdagsverk og jaktuttaket. Samtidig understrekes det at rekonstruksjonen egner seg bedre til å beskrive <strong>relativ utvikling over tid</strong> enn det eksakte antallet dyr i ett bestemt år.</p>
+<div class="question">Hvilken konklusjon er faglig best?</div>
+<div class="choices">
+<button class="choice" onclick="mc(6,'A')">A · Kohortanalysen gir et direkte og feilfritt mål på absolutt bestandstetthet</button>
+<button class="choice" onclick="mc(6,'B')">B · Godt samsvar med andre indikatorer styrker tolkningen, men resultatet er fortsatt modell- og antakelsesavhengig</button>
+<button class="choice" onclick="mc(6,'C')">C · Når jaktuttaket er kjent, er sett-elg-data overflødige</button>
+<button class="choice" onclick="mc(6,'D')">D · Ulik naturlig dødelighet mellom år har ingen betydning for resultatet</button>
+</div><div id="fb" class="feedback"></div>
+<div id="finish" class="hidden"><div class="note"><strong>Fullført.</strong> Du har arbeidet med kohortmatriser, rapportdata, naturlig dødelighet, sensitivitet, retrospektiv rekonstruksjon, plussgrupper og forvaltningsmessig tolkning.</div><div class="actions"><button class="primary" onclick="restart()">Start på nytt</button><button class="secondary" onclick="showTheory()">Til teorien</button></div></div>
+<div class="footerhint">Kjernen: Kohortanalyse er et verktøy for å rekonstruere mønstre i bestandsutviklingen, ikke en erstatning for alle andre overvåkingsdata.</div>
+`
+];
+
+const mcFeedback={
+0:{correct:'B',good:'Riktig. En diagonal følger samme fødselskohort gjennom økende alder og senere fellingsår.',wrong:{
+ A:'Du beskriver en <strong>kolonne</strong> i tabellen: samme fellingsår. En kohort følges derimot på tvers av kalenderår etter hvert som dyrene blir eldre.',
+ C:'Du beskriver en <strong>rad</strong>: samme alder. En kohort består av dyr født samme år, og alderen øker fra år til år.',
+ D:'En kohort omfatter både individer som senere blir felt ved ulike aldre og eventuelle terminalt gjenlevende; den er ikke definert av å overleve hele perioden.'
+}},
+3:{correct:'A',good:'Riktig. Når naturlig dødelighet endres, endres hvor mange dyr modellen må anta at forsvinner av andre årsaker enn jakt, og dermed den rekonstruerte historien.',wrong:{
+ B:'Alder ved felling bestemmes fra dyret og endres ikke av modellens mortalitetsantakelse. Det som endres, er hvor mange individer modellen forventer å miste mellom observasjonene.',
+ C:'Jaktuttaket beskriver bare én dødsårsak. Rapporten legger eksplisitt inn naturlig dødelighet, og påpeker at variasjon i denne kan gi avvik mellom rekonstruert og faktisk tetthet.'
+}},
+5:{correct:'A',good:'Riktig. Plussgruppen håndterer de eldste og/eller fortsatt gjenlevende individene slik at analysen ikke må vente på komplette livsløp for alle kohorter.',wrong:{
+ B:'Rapporten sier tvert imot at presise aldersdata er et viktig krav. Plussgruppen reduserer kravet om komplette livsløpsdata, ikke behovet for aldersbestemmelse.',
+ C:'En plussgruppe betyr ikke at eldre dyr antas døde. Den grupperer terminale aldersklasser og gjør det mulig å estimere gjenlevende individer.',
+ D:'Migrasjon må vurderes som en egen modellutfordring. En plussgruppe er ikke en automatisk korreksjon for inn- eller utvandring.'
+}},
+6:{correct:'B',good:'Riktig. Samsvar med sett-elg og jaktuttak gir støtte til den rekonstruerte trenden, men modellen er fortsatt avhengig av aldersdata og antakelser som naturlig dødelighet.',wrong:{
+ A:'Rapporten sier eksplisitt at metoden er bedre egnet til <strong>relativ variasjon over tid</strong> enn til det faktiske antallet eller tettheten i ett bestemt år.',
+ C:'Sett-elg-data fungerer som en uavhengig bestandsindeks. Nettopp samsvaret mellom flere datakilder er en styrke i tolkningen.',
+ D:'Rapporten påpeker at små forskjeller i naturlig dødelighet mellom områder og år kan gjøre at rekonstruert tetthet avviker fra faktisk tetthet.'
+}}
+};
+
+function showTheory(){mode='theory';document.getElementById('content').innerHTML=theoryHTML;document.getElementById('levelText').textContent='Teorigrunnlag';document.getElementById('calcTip').textContent='Les teorigrunnlaget før du starter oppgavene.';updateUI()}
+function showSources(){mode='sources';document.getElementById('content').innerHTML=sourceHTML;document.getElementById('levelText').textContent='Kilder';document.getElementById('calcTip').textContent='Kildene er integrert i teori og oppgaver.';updateUI()}
+function showGame(){mode='game';renderLevel()}
+function renderLevel(){
+ document.getElementById('content').innerHTML=levels[level]();
+ document.getElementById('levelText').textContent=`Nivå ${level+1} av ${levels.length}`;
+ const tips=[
+ 'Diagonal = samme fødselsår. Rad = samme alder. Kolonne = samme kalenderår.',
+ 'Bruk 130 / 340 × 100.',
+ 'Fem prosent av 200 er 10. Trekk tapet fra 200.',
+ 'Sammenlign gjerne M = 5 % og M = 10 %.',
+ 'Summer alle fire skjebnekategoriene.',
+ 'Tenk på hvordan modellen håndterer dyr som fortsatt lever ved slutten av perioden.',
+ 'Se etter forskjellen mellom trend/indeks og absolutt telling.'
+ ];
+ document.getElementById('calcTip').textContent=tips[level];
+ updateUI(); if(level===3)setTimeout(()=>simulate(),70)
+}
+function updateUI(){
+ document.getElementById('score').textContent=score;
+ const done=levelDone.filter(Boolean).length,s=done>=6?3:done>=3?2:done>=1?1:0;
+ document.getElementById('stars').textContent='★'.repeat(s)+'☆'.repeat(3-s);
+ document.getElementById('progressBar').style.width=mode==='game'?`${(level/levels.length)*100}%`:'0%';
+}
+function mc(i,a){
+ const f=mcFeedback[i]; if(a===f.correct)good(f.good,i); else bad(f.wrong[a]||'Prøv igjen og bruk begrepene i teoridelen.',i)
+}
+function good(msg,i){
+ const fb=document.getElementById('fb');fb.className='feedback good';fb.innerHTML='✅ '+msg;
+ if(!levelDone[i]){levelDone[i]=true;score+=Math.max(5,15-attempts[i]*3)}
+ updateUI();
+ if(i===levels.length-1){document.getElementById('progressBar').style.width='100%';document.getElementById('finish').classList.remove('hidden')}
+ else if(!document.getElementById('nextBtn')){const d=document.createElement('div');d.className='actions';d.innerHTML='<button id="nextBtn" class="primary" onclick="nextLevel()">Neste nivå →</button>';fb.after(d)}
+}
+function bad(msg,i){
+ attempts[i]++;const fb=document.getElementById('fb');fb.className='feedback bad';
+ const extra=attempts[i]>=2?'<br><span class="small"><strong>Ekstra råd:</strong> Gå tilbake til teorigrunnlaget hvis du er usikker på begrepene.</span>':'';
+ fb.innerHTML='↪ '+msg+extra
+}
+function calcVal(){
+ let x=document.getElementById('calcDisplay').value.trim().replace(',','.');
+ if(x==='')return NaN;let v=Number(x);
+ if(Number.isFinite(v))return v;
+ try{if(!/^[0-9+\-*/().\s]+$/.test(x))return NaN;return Function('"use strict";return ('+x+')')()}catch(e){return NaN}
+}
+function toggleFormulaHint(){
+  const h=document.getElementById('formulaHint');
+  const b=document.getElementById('formulaHintBtn');
+  if(!h||!b)return;
+  const hidden=h.classList.toggle('hidden');
+  b.textContent=hidden?'Vis regnehjelp':'Skjul regnehjelp';
+}
+function checkL2(){
+ const v=calcVal();
+ if(!Number.isFinite(v)){bad('Skriv et prosenttall i kalkulatoren.',1);return}
+ if(Math.abs(v-38.2)<.15){good('Riktig. 130/340 × 100 = 38,2 %. Dette er en enkel avledet andel fra tallene i rapporteksempelet.',1);return}
+ if(Math.abs(v-130)<.2){bad('130 er antallet individer i kohorten, ikke en prosentandel. Del 130 på totalen 340 og multipliser med 100.',1);return}
+ if(Math.abs(v-340)<.2){bad('340 er totalen i den rekonstruerte bestanden rett før jakta. For en andel trenger du 130 som teller og 340 som nevner.',1);return}
+ if(Math.abs(v-2.6)<.15||Math.abs(v-2.62)<.15){bad('Du ser ut til å ha regnet 340/130. For andelen som 1974-kohorten utgjør, skal kohorten stå i telleren: 130/340.',1);return}
+ if(Math.abs(v-210)<.2){bad('210 er differansen 340 − 130. Oppgaven spør etter andel, ikke hvor mange som tilhører andre kohorter.',1);return}
+ bad('Bruk formelen andel = del / helhet × 100. Her er delen 130 og helheten 340.',1)
+}
+function checkL3(){
+ const v=calcVal();
+ if(!Number.isFinite(v)){bad('Skriv antall gjenlevende dyr i kalkulatoren.',2);return}
+ if(Math.abs(v-190)<.1){good('Riktig. 5 % av 200 er 10 dyr, så 200 − 10 = 190. Dette illustrerer hvordan en mortalitetsantakelse påvirker antallet modellen fører videre.',2);return}
+ if(Math.abs(v-10)<.1){bad('10 er antallet som forventes å dø ved 5 % mortalitet. Oppgaven spør hvor mange som <strong>overlever</strong>.',2);return}
+ if(Math.abs(v-195)<.1){bad('Du har trolig trukket 5 dyr i stedet for 5 %. Fem prosent av 200 er 10.',2);return}
+ if(Math.abs(v-95)<.1){bad('95 er selve overlevelsesprosenten. Oppgaven spør etter antall dyr: 95 % av 200.',2);return}
+ if(Math.abs(v-200)<.1){bad('Da har du ikke lagt inn naturlig dødelighet. Trekk 5 % av 200 fra startantallet.',2);return}
+ bad('Beregn først tapet: 0,05 × 200. Trekk deretter dette fra 200.',2)
+}
+function checkL5(){
+ const v=calcVal();
+ if(!Number.isFinite(v)){bad('Summer de tre fellingsgruppene og terminalgruppen.',4);return}
+ if(Math.abs(v-95)<.1){good('Riktig. 40 + 28 + 17 + 10 = 95. I dette forenklede regnskapet må minst 95 individer ha vært til stede ved start.',4);return}
+ if(Math.abs(v-85)<.1){bad('85 er summen av de registrerte fellingene. Du har glemt de 10 dyrene som fortsatt befinner seg i terminalgruppen.',4);return}
+ if(Math.abs(v-10)<.1){bad('10 er bare terminalgruppen. Rekonstruksjonen må også inkludere individer som senere ble felt.',4);return}
+ if(Math.abs(v-57)<.1){bad('57 tilsvarer 40 + 17. Kontroller at alle tre aldersspesifikke fellingene er med: 40, 28 og 17, pluss terminalgruppen.',4);return}
+ bad('Tenk kohortregnskap: alle registrerte framtidige skjebner representerer individer som må ha vært i kohorten tidligere.',4)
+}
+function nextLevel(){if(level<levels.length-1){level++;clearCalc();renderLevel()}}
+function press(v){const d=document.getElementById('calcDisplay');if(d.value==='Feil')d.value='';d.value+=v}
+function clearCalc(){document.getElementById('calcDisplay').value=''}
+function backspace(){const d=document.getElementById('calcDisplay');d.value=d.value.slice(0,-1)}
+function calcEquals(){const d=document.getElementById('calcDisplay');try{if(!/^[0-9+\-*/().\s]+$/.test(d.value))throw 0;d.value=Number(Function('"use strict";return ('+d.value+')')().toFixed(6)).toString()}catch(e){d.value='Feil'}}
+function labels(){document.getElementById('huntV').textContent=document.getElementById('hunt').value+' %';document.getElementById('natV').textContent=document.getElementById('nat').value+' %'}
+function preset(h,m){document.getElementById('hunt').value=h;document.getElementById('nat').value=m;labels();simulate()}
+function simulate(){
+ if(level!==3||mode!=='game')return;labels();
+ const H=+document.getElementById('hunt').value/100,M=+document.getElementById('nat').value/100;
+ let pop=340,rows=[];
+ for(let i=0;i<5;i++){
+   let start=pop,h=Math.round(start*H),after=start-h,n=Math.round(after*M);pop=Math.max(0,after-n);
+   rows.push({year:1974+i,start,h,n,remain:pop})
+ }
+ document.getElementById('simTable').innerHTML=`<table><thead><tr><th>År</th><th>Start</th><th>Jakt</th><th>Nat.</th><th>Igjen</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.year}</td><td>${r.start}</td><td>${r.h}</td><td>${r.n}</td><td><strong>${r.remain}</strong></td></tr>`).join('')}</tbody></table><div class="note"><strong>Hypotetisk simulering:</strong> Nₜ₊₁ ≈ Nₜ(1−H)(1−M), med avrunding til hele dyr.</div>`;
+ draw(rows)
+}
+function draw(rows){
+ const c=document.getElementById('chart');if(!c)return;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
+ const p={l:48,r:18,t:28,b:42},w=c.width-p.l-p.r,h=c.height-p.t-p.b,max=340;
+ x.strokeStyle='#d4ddd6';for(let t=0;t<=340;t+=85){const y=p.t+h-t/max*h;x.beginPath();x.moveTo(p.l,y);x.lineTo(c.width-p.r,y);x.stroke();x.fillStyle='#64748b';x.font='12px system-ui';x.fillText(t,8,y+4)}
+ const bw=w/(rows.length*1.8);
+ rows.forEach((r,i)=>{const xx=p.l+(i+.45)*(w/rows.length),bh=r.remain/max*h;x.fillStyle='#315f47';x.fillRect(xx,p.t+h-bh,bw,bh);x.fillStyle='#25352b';x.fillText(r.year,xx-2,c.height-16);x.fillText(r.remain,xx+2,p.t+h-bh-6)});
+ x.fillStyle='#425047';x.font='bold 13px system-ui';x.fillText('Gjenlevende dyr',p.l,17)
+}
+function restart(){level=0;score=0;attempts=[0,0,0,0,0,0,0];levelDone=[false,false,false,false,false,false,false];clearCalc();showTheory()}
+document.getElementById('calcDisplay').addEventListener('keydown',e=>{if(e.key==='Enter')calcEquals()});
+showTheory();
+</script>
+</body>
+</html>
